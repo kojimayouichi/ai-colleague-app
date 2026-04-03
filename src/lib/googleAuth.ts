@@ -1,63 +1,47 @@
 import { GOOGLE_SCOPES } from '../constants';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
+const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 
+// アクセストークンをメモリ内に保持
 let accessToken: string | null = null;
 
-const waitForGSI = (): Promise<void> =>
-  new Promise((resolve) => {
-    console.log('[Auth] waitForGSI 開始');
-    if (window.google?.accounts?.oauth2) {
-      console.log('[Auth] GSI すでに読み込み済み');
-      resolve();
-      return;
-    }
-    console.log('[Auth] GSI 読み込み待機中...');
-    const timer = setInterval(() => {
-      if (window.google?.accounts?.oauth2) {
-        clearInterval(timer);
-        console.log('[Auth] GSI 読み込み完了');
-        resolve();
-      }
-    }, 100);
+// リダイレクト先URI（現在のオリジン + パス）
+const REDIRECT_URI = `${window.location.origin}${window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/'}`;
+
+// Googleの認可画面にリダイレクト
+export const redirectToSignIn = (): void => {
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'token',
+    scope: GOOGLE_SCOPES,
+    prompt: 'select_account',
   });
+  window.location.href = `${AUTH_URL}?${params}`;
+};
 
-export const signIn = (): Promise<string> =>
-  new Promise((resolve, reject) => {
-    console.log('[Auth] signIn 開始, CLIENT_ID:', CLIENT_ID ? '設定済み' : '未設定');
-    waitForGSI().then(() => {
-      console.log('[Auth] initTokenClient 実行');
-      const tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: GOOGLE_SCOPES,
-        callback: (response) => {
-          console.log('[Auth] callback 受信:', response);
-          if (response.error) {
-            console.error('[Auth] エラー:', response.error, response.error_description);
-            reject(new Error(response.error));
-            return;
-          }
-          console.log('[Auth] トークン取得成功');
-          accessToken = response.access_token;
-          resolve(response.access_token);
-        },
-        error_callback: (error: { type: string }) => {
-          console.error('[Auth] error_callback:', error);
-          reject(new Error(error.type));
-        },
-      });
+// リダイレクト後のURLハッシュからトークンを取り出す
+export const parseTokenFromHash = (): string | null => {
+  const hash = window.location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  return params.get('access_token');
+};
 
-      console.log('[Auth] requestAccessToken 実行');
-      tokenClient.requestAccessToken({ prompt: 'select_account' });
-      console.log('[Auth] requestAccessToken 呼び出し完了（ポップアップ待機中）');
-    });
-  });
+// URLからトークンを消去（履歴に残さない）
+export const clearTokenFromUrl = (): void => {
+  window.history.replaceState(null, '', window.location.pathname);
+};
 
+// トークンをセット
+export const setAccessToken = (token: string): void => {
+  accessToken = token;
+};
+
+// トークンを取得
 export const getAccessToken = (): string | null => accessToken;
 
+// サインアウト
 export const signOut = (): void => {
-  if (accessToken) {
-    google.accounts.oauth2.revoke(accessToken, () => {});
-    accessToken = null;
-  }
+  accessToken = null;
 };

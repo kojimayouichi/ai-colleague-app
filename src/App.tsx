@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { C } from './constants';
-import { signIn } from './lib/googleAuth';
+import {
+  redirectToSignIn,
+  parseTokenFromHash,
+  clearTokenFromUrl,
+  setAccessToken,
+} from './lib/googleAuth';
 import { useGoogleTasks } from './hooks/useGoogleTasks';
 import { useGoogleCalendar } from './hooks/useGoogleCalendar';
 import BottomNav, { type Screen } from './components/layout/BottomNav';
@@ -12,24 +17,19 @@ import MemoScreen from './screens/MemoScreen';
 const App = () => {
   const [screen, setScreen] = useState<Screen>('home');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
 
   const { tasks, loading: tasksLoading, load: loadTasks, complete } = useGoogleTasks();
   const { events, loading: calLoading, load: loadCalendar } = useGoogleCalendar();
 
-  const handleSignIn = async () => {
-    setAuthLoading(true);
-    setAuthError(null);
-    try {
-      await signIn();
+  // 起動時にURLハッシュからトークンを取り出す
+  useEffect(() => {
+    const token = parseTokenFromHash();
+    if (token) {
+      setAccessToken(token);
+      clearTokenFromUrl();
       setIsAuthenticated(true);
-    } catch {
-      setAuthError('ログインに失敗しました。もう一度お試しください。');
-    } finally {
-      setAuthLoading(false);
     }
-  };
+  }, []);
 
   // 認証後にデータを取得
   useEffect(() => {
@@ -66,43 +66,26 @@ const App = () => {
           </div>
         </div>
 
-        {authError && (
-          <div
-            style={{
-              color: C.red,
-              fontSize: 13,
-              marginBottom: 16,
-              padding: '10px 16px',
-              background: '#F27B7B15',
-              borderRadius: 8,
-              border: `1px solid ${C.red}40`,
-            }}
-          >
-            {authError}
-          </div>
-        )}
-
         <button
-          onClick={handleSignIn}
-          disabled={authLoading}
+          onClick={redirectToSignIn}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 10,
             padding: '14px 28px',
             borderRadius: 14,
-            background: authLoading ? C.border : C.accent,
+            background: C.accent,
             border: 'none',
             color: C.text,
             fontSize: 15,
             fontWeight: 700,
-            cursor: authLoading ? 'not-allowed' : 'pointer',
+            cursor: 'pointer',
             width: '100%',
             maxWidth: 320,
             justifyContent: 'center',
           }}
         >
-          {authLoading ? '接続中...' : 'Googleでログイン'}
+          Googleでログイン
         </button>
 
         <div style={{ color: C.textDim, fontSize: 11, marginTop: 20, textAlign: 'center' }}>
