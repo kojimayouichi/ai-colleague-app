@@ -10,6 +10,7 @@ declare namespace google.accounts.oauth2 {
     client_id: string;
     scope: string;
     callback: (response: TokenResponse) => void;
+    error_callback?: (error: { type: string }) => void;
   }
 
   interface TokenClient {

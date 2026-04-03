@@ -41,6 +41,10 @@ export const signIn = (): Promise<string> =>
           accessToken = response.access_token;
           resolve(response.access_token);
         },
+        error_callback: (error: { type: string }) => {
+          console.error('[Auth] error_callback:', error);
+          reject(new Error(error.type));
+        },
       });
 
       console.log('[Auth] requestAccessToken 実行');
