@@ -48,7 +48,7 @@ export const signIn = (): Promise<string> =>
       });
 
       console.log('[Auth] requestAccessToken 実行');
-      tokenClient.requestAccessToken({ prompt: '' });
+      tokenClient.requestAccessToken({ prompt: 'select_account' });
       console.log('[Auth] requestAccessToken 呼び出し完了（ポップアップ待機中）');
     });
   });
