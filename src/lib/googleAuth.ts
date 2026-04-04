@@ -6,11 +6,14 @@ const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 // アクセストークンをメモリ内に保持
 let accessToken: string | null = null;
 
-// リダイレクト先URI（現在のオリジン + パス）
-const REDIRECT_URI = `${window.location.origin}${window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/'}`;
+// リダイレクト先URI（Google Cloud Consoleに登録したものと完全一致させる）
+const REDIRECT_URI = import.meta.env.DEV
+  ? 'http://localhost:5173/'
+  : 'https://kojimayouichi.github.io/ai-colleague-app/';
 
 // Googleの認可画面にリダイレクト
 export const redirectToSignIn = (): void => {
+  console.log('[Auth] REDIRECT_URI:', REDIRECT_URI);
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     redirect_uri: REDIRECT_URI,
