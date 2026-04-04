@@ -1,6 +1,7 @@
 import { GOOGLE_SCOPES } from '../constants';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
+const CLIENT_SECRET = import.meta.env.VITE_GOOGLE_CLIENT_SECRET as string;
 const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
@@ -81,6 +82,7 @@ export const exchangeCodeForToken = async (): Promise<string | null> => {
     body: new URLSearchParams({
       code,
       client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
       redirect_uri: REDIRECT_URI,
       code_verifier: verifier,
       grant_type: 'authorization_code',
