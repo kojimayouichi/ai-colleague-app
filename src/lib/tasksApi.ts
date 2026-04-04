@@ -63,3 +63,56 @@ export const completeTask = async (taskListId: string, taskId: string): Promise<
     body: JSON.stringify({ status: 'completed' }),
   });
 };
+
+// タスクを作成する
+export const createTask = async (
+  taskListId: string,
+  title: string,
+  due?: string,       // YYYY-MM-DD
+  category?: string,
+): Promise<Task> => {
+  const notes = category ? `#${category}` : '';
+  const body: Record<string, string> = { title, notes };
+  if (due) body.due = `${due}T00:00:00.000Z`;
+
+  const res = await fetch(`${BASE}/lists/${taskListId}/tasks`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error('タスクの作成に失敗しました');
+  const item = await res.json() as Record<string, string>;
+  const { category: cat, tags, body: noteBody } = parseNotes(item.notes);
+  return {
+    id: item.id,
+    title: item.title,
+    notes: item.notes ?? '',
+    due: item.due ?? null,
+    completed: null,
+    status: 'needsAction',
+    category: cat,
+    tags,
+    body: noteBody,
+  };
+};
+
+// タスクを削除する
+export const deleteTask = async (taskListId: string, taskId: string): Promise<void> => {
+  await fetch(`${BASE}/lists/${taskListId}/tasks/${taskId}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+};
+
+// タスクのメモ欄（notes）を更新する（カテゴリタグの書き換えに使用）
+export const updateTaskNotes = async (
+  taskListId: string,
+  taskId: string,
+  notes: string,
+): Promise<void> => {
+  await fetch(`${BASE}/lists/${taskListId}/tasks/${taskId}`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ notes }),
+  });
+};

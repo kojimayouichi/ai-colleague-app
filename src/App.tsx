@@ -13,8 +13,8 @@ const App = () => {
   const [screen, setScreen] = useState<Screen>('home');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const { tasks, loading: tasksLoading, load: loadTasks, complete } = useGoogleTasks();
-  const { events, loading: calLoading, load: loadCalendar } = useGoogleCalendar();
+  const { tasks, loading: tasksLoading, load: loadTasks, complete, create, remove, updateCategory } = useGoogleTasks();
+  const { events, weekEvents, weekDays, selectedDate, loading: calLoading, load: loadCalendar, loadWeek, setSelectedDate } = useGoogleCalendar();
 
   // 起動時にURLの認証コードをトークンに交換
   useEffect(() => {
@@ -97,10 +97,10 @@ const App = () => {
         return <HomeScreen tasks={tasks} events={events} loading={loading} />;
       case 'tasks':
         return (
-          <TaskScreen tasks={tasks} events={events} loading={loading} onComplete={complete} />
+          <TaskScreen tasks={tasks} events={events} loading={loading} onComplete={complete} onRemove={remove} onCreate={create} onUpdateCategory={updateCategory} />
         );
       case 'calendar':
-        return <CalendarScreen />;
+        return <CalendarScreen weekDays={weekDays} weekEvents={weekEvents} selectedDate={selectedDate} tasks={tasks} loading={calLoading} onSelectDate={setSelectedDate} onLoadWeek={loadWeek} />;
       case 'memo':
         return <MemoScreen />;
     }
