@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react';
 import { C } from './constants';
-import {
-  redirectToSignIn,
-  parseTokenFromHash,
-  clearTokenFromUrl,
-  setAccessToken,
-} from './lib/googleAuth';
+import { redirectToSignIn, exchangeCodeForToken } from './lib/googleAuth';
 import { useGoogleTasks } from './hooks/useGoogleTasks';
 import { useGoogleCalendar } from './hooks/useGoogleCalendar';
 import BottomNav, { type Screen } from './components/layout/BottomNav';
@@ -21,13 +16,13 @@ const App = () => {
   const { tasks, loading: tasksLoading, load: loadTasks, complete } = useGoogleTasks();
   const { events, loading: calLoading, load: loadCalendar } = useGoogleCalendar();
 
-  // 起動時にURLハッシュからトークンを取り出す
+  // 起動時にURLの認証コードをトークンに交換
   useEffect(() => {
-    const token = parseTokenFromHash();
-    if (token) {
-      setAccessToken(token);
-      clearTokenFromUrl();
-      setIsAuthenticated(true);
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('code')) {
+      exchangeCodeForToken().then((token) => {
+        if (token) setIsAuthenticated(true);
+      });
     }
   }, []);
 
