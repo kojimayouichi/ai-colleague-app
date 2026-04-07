@@ -27,6 +27,7 @@ export interface CalendarEvent {
 export interface Memo {
   datetime: string;
   text: string;
+  rowIndex: number; // シート上の1-based行番号
 }
 
 // 認証状態

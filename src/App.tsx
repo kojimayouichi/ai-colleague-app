@@ -16,7 +16,7 @@ const App = () => {
 
   const { tasks, loading: tasksLoading, load: loadTasks, complete, create, remove, updateCategory, updateDue } = useGoogleTasks();
   const { events, weekEvents, weekDays, selectedDate, loading: calLoading, load: loadCalendar, loadWeek, setSelectedDate } = useGoogleCalendar();
-  const { memos, loading: memosLoading, load: loadMemos, addMemo } = useSheets();
+  const { memos, loading: memosLoading, load: loadMemos, addMemo, editMemo, removeMemo } = useSheets();
 
   // 起動時：保存済みトークン確認 → なければURLのcodeを交換
   useEffect(() => {
@@ -110,7 +110,7 @@ const App = () => {
       case 'calendar':
         return <CalendarScreen weekDays={weekDays} weekEvents={weekEvents} selectedDate={selectedDate} tasks={tasks} loading={calLoading} onSelectDate={setSelectedDate} onLoadWeek={loadWeek} />;
       case 'memo':
-        return <MemoScreen memos={memos} loading={memosLoading} onAdd={addMemo} />;
+        return <MemoScreen memos={memos} loading={memosLoading} onAdd={addMemo} onEdit={editMemo} onDelete={removeMemo} />;
     }
   };
 

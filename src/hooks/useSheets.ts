@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { appendMemo, fetchMemos } from '../lib/sheetsApi';
+import { appendMemo, fetchMemos, updateMemo, deleteMemo } from '../lib/sheetsApi';
 import type { Memo } from '../types';
 
 export const useSheets = () => {
@@ -21,5 +21,15 @@ export const useSheets = () => {
     await load();
   };
 
-  return { memos, loading, load, addMemo };
+  const editMemo = async (rowIndex: number, text: string) => {
+    await updateMemo(rowIndex, text);
+    await load();
+  };
+
+  const removeMemo = async (rowIndex: number) => {
+    await deleteMemo(rowIndex);
+    await load();
+  };
+
+  return { memos, loading, load, addMemo, editMemo, removeMemo };
 };

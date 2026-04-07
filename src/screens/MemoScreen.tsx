@@ -6,11 +6,16 @@ interface Props {
   memos: Memo[];
   loading: boolean;
   onAdd: (text: string) => Promise<void>;
+  onEdit: (rowIndex: number, text: string) => Promise<void>;
+  onDelete: (rowIndex: number) => Promise<void>;
 }
 
-const MemoScreen = ({ memos, loading, onAdd }: Props) => {
+const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete }: Props) => {
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editText, setEditText] = useState('');
+  const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
 
   const handleSubmit = async () => {
     if (!text.trim() || submitting) return;
@@ -20,6 +25,26 @@ const MemoScreen = ({ memos, loading, onAdd }: Props) => {
       setText('');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEditStart = (memo: Memo) => {
+    setEditingIndex(memo.rowIndex);
+    setEditText(memo.text);
+  };
+
+  const handleEditSave = async (rowIndex: number) => {
+    if (!editText.trim()) return;
+    await onEdit(rowIndex, editText.trim());
+    setEditingIndex(null);
+  };
+
+  const handleDelete = async (rowIndex: number) => {
+    setDeletingIndex(rowIndex);
+    try {
+      await onDelete(rowIndex);
+    } finally {
+      setDeletingIndex(null);
     }
   };
 
@@ -73,9 +98,9 @@ const MemoScreen = ({ memos, loading, onAdd }: Props) => {
         <div style={{ color: C.textDim, fontSize: 13, textAlign: 'center', padding: 32 }}>メモがありません</div>
       )}
 
-      {memos.map((memo, i) => (
+      {memos.map((memo) => (
         <div
-          key={i}
+          key={memo.rowIndex}
           style={{
             background: C.surface,
             border: `1px solid ${C.border}`,
@@ -84,8 +109,67 @@ const MemoScreen = ({ memos, loading, onAdd }: Props) => {
             marginBottom: 10,
           }}
         >
-          <div style={{ color: C.textDim, fontSize: 11, marginBottom: 6 }}>{memo.datetime}</div>
-          <div style={{ color: C.text, fontSize: 14, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{memo.text}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <div style={{ color: C.textDim, fontSize: 11 }}>{memo.datetime}</div>
+            {editingIndex !== memo.rowIndex && (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => handleEditStart(memo)}
+                  style={{ background: 'none', border: 'none', color: C.textMid, cursor: 'pointer', fontSize: 14, padding: '2px 4px' }}
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={() => handleDelete(memo.rowIndex)}
+                  disabled={deletingIndex === memo.rowIndex}
+                  style={{ background: 'none', border: 'none', color: C.textMid, cursor: 'pointer', fontSize: 14, padding: '2px 4px', opacity: deletingIndex === memo.rowIndex ? 0.4 : 1 }}
+                >
+                  🗑️
+                </button>
+              </div>
+            )}
+          </div>
+
+          {editingIndex === memo.rowIndex ? (
+            <>
+              <textarea
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                rows={3}
+                autoFocus
+                style={{
+                  width: '100%',
+                  background: C.surfaceHigh,
+                  border: `1px solid ${C.accent}`,
+                  borderRadius: 8,
+                  color: C.text,
+                  fontSize: 14,
+                  resize: 'none',
+                  outline: 'none',
+                  fontFamily: 'system-ui, sans-serif',
+                  padding: '8px 10px',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+                <button
+                  onClick={() => setEditingIndex(null)}
+                  style={{ background: C.border, border: 'none', borderRadius: 8, padding: '6px 14px', color: C.textMid, fontSize: 12, cursor: 'pointer' }}
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={() => handleEditSave(memo.rowIndex)}
+                  disabled={!editText.trim()}
+                  style={{ background: editText.trim() ? C.accent : C.border, border: 'none', borderRadius: 8, padding: '6px 14px', color: C.text, fontSize: 12, fontWeight: 700, cursor: editText.trim() ? 'pointer' : 'default' }}
+                >
+                  保存
+                </button>
+              </div>
+            </>
+          ) : (
+            <div style={{ color: C.text, fontSize: 14, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{memo.text}</div>
+          )}
         </div>
       ))}
     </div>
