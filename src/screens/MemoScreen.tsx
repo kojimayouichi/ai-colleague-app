@@ -8,14 +8,16 @@ interface Props {
   onAdd: (text: string) => Promise<void>;
   onEdit: (rowIndex: number, text: string) => Promise<void>;
   onDelete: (rowIndex: number) => Promise<void>;
+  onMemorize: (text: string) => Promise<void>;
 }
 
-const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete }: Props) => {
+const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete, onMemorize }: Props) => {
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+  const [memorizingIndex, setMemorizingIndex] = useState<number | null>(null);
 
   const handleSubmit = async () => {
     if (!text.trim() || submitting) return;
@@ -37,6 +39,15 @@ const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete }: Props) => {
     if (!editText.trim()) return;
     await onEdit(rowIndex, editText.trim());
     setEditingIndex(null);
+  };
+
+  const handleMemorize = async (rowIndex: number, text: string) => {
+    setMemorizingIndex(rowIndex);
+    try {
+      await onMemorize(text);
+    } finally {
+      setMemorizingIndex(null);
+    }
   };
 
   const handleDelete = async (rowIndex: number) => {
@@ -113,6 +124,14 @@ const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete }: Props) => {
             <div style={{ color: C.textDim, fontSize: 11 }}>{memo.datetime}</div>
             {editingIndex !== memo.rowIndex && (
               <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => handleMemorize(memo.rowIndex, memo.text)}
+                  disabled={memorizingIndex === memo.rowIndex}
+                  title="中期記憶に保存"
+                  style={{ background: 'none', border: 'none', color: C.textMid, cursor: 'pointer', fontSize: 14, padding: '2px 4px', opacity: memorizingIndex === memo.rowIndex ? 0.4 : 1 }}
+                >
+                  🧠
+                </button>
                 <button
                   onClick={() => handleEditStart(memo)}
                   style={{ background: 'none', border: 'none', color: C.textMid, cursor: 'pointer', fontSize: 14, padding: '2px 4px' }}

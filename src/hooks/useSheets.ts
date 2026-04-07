@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { appendMemo, fetchMemos, updateMemo, deleteMemo } from '../lib/sheetsApi';
+import { appendMemo, fetchMemos, updateMemo, deleteMemo, appendMidTermMemory } from '../lib/sheetsApi';
 import type { Memo } from '../types';
 
 export const useSheets = () => {
@@ -31,5 +31,9 @@ export const useSheets = () => {
     await load();
   };
 
-  return { memos, loading, load, addMemo, editMemo, removeMemo };
+  const memorize = async (text: string) => {
+    await appendMidTermMemory(text);
+  };
+
+  return { memos, loading, load, addMemo, editMemo, removeMemo, memorize };
 };

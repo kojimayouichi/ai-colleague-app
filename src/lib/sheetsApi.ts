@@ -78,6 +78,23 @@ export const updateMemo = async (rowIndex: number, text: string): Promise<void> 
   if (!res.ok) throw new Error('メモの更新に失敗しました');
 };
 
+// 中期記憶シートに追記する（A列：日付、B列：本文）
+export const appendMidTermMemory = async (text: string): Promise<void> => {
+  const date = new Date().toLocaleDateString('ja-JP', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  });
+  const range = '中期記憶!A:B';
+  const res = await fetch(
+    `${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED`,
+    {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ values: [[date, text]] }),
+    },
+  );
+  if (!res.ok) throw new Error('中期記憶への追加に失敗しました');
+};
+
 // メモの行を削除する
 export const deleteMemo = async (rowIndex: number): Promise<void> => {
   const sheetId = await getSheetId();
