@@ -3,6 +3,7 @@ import { C } from './constants';
 import { redirectToSignIn, exchangeCodeForToken, loadStoredToken } from './lib/googleAuth';
 import { useGoogleTasks } from './hooks/useGoogleTasks';
 import { useGoogleCalendar } from './hooks/useGoogleCalendar';
+import { useSheets } from './hooks/useSheets';
 import BottomNav, { type Screen } from './components/layout/BottomNav';
 import HomeScreen from './screens/HomeScreen';
 import TaskScreen from './screens/TaskScreen';
@@ -15,6 +16,7 @@ const App = () => {
 
   const { tasks, loading: tasksLoading, load: loadTasks, complete, create, remove, updateCategory, updateDue } = useGoogleTasks();
   const { events, weekEvents, weekDays, selectedDate, loading: calLoading, load: loadCalendar, loadWeek, setSelectedDate } = useGoogleCalendar();
+  const { memos, loading: memosLoading, load: loadMemos, addMemo } = useSheets();
 
   // 起動時：保存済みトークン確認 → なければURLのcodeを交換
   useEffect(() => {
@@ -36,10 +38,11 @@ const App = () => {
     if (isAuthenticated) {
       loadTasks();
       loadCalendar();
+      loadMemos();
     }
   }, [isAuthenticated]);
 
-  const loading = tasksLoading || calLoading;
+  const loading = tasksLoading || calLoading || memosLoading;
 
   // ─── ログイン画面 ───────────────────────────────────────
   if (!isAuthenticated) {
@@ -107,7 +110,7 @@ const App = () => {
       case 'calendar':
         return <CalendarScreen weekDays={weekDays} weekEvents={weekEvents} selectedDate={selectedDate} tasks={tasks} loading={calLoading} onSelectDate={setSelectedDate} onLoadWeek={loadWeek} />;
       case 'memo':
-        return <MemoScreen />;
+        return <MemoScreen memos={memos} loading={memosLoading} onAdd={addMemo} />;
     }
   };
 

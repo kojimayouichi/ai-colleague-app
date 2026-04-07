@@ -23,6 +23,12 @@ export interface CalendarEvent {
   color?: string;
 }
 
+// メモ
+export interface Memo {
+  datetime: string;
+  text: string;
+}
+
 // 認証状態
 export interface AuthState {
   isAuthenticated: boolean;

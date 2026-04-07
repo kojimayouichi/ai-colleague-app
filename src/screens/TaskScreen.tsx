@@ -106,7 +106,7 @@ const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, on
   }, [dragTask, dragOverCat, onUpdateCategory]);
 
   return (
-    <div style={{ padding: '20px 16px 120px', position: 'relative' }}>
+    <div style={{ padding: '20px 16px 180px', position: 'relative' }}>
       <div style={{ color: C.text, fontSize: 20, fontWeight: 700, marginBottom: 20 }}>タスク</div>
 
       {loading && <div style={{ color: C.textMid, textAlign: 'center', padding: 32 }}>読み込み中...</div>}
