@@ -34,6 +34,10 @@ const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, on
     cat,
     items: tasks.filter((t) => t.category === cat && t.due?.slice(0, 10) !== todayStr),
   }));
+  // カテゴリなし（未分類）タスク
+  const uncategorizedTasks = tasks.filter(
+    (t) => t.category === '未分類' && t.due?.slice(0, 10) !== todayStr,
+  );
 
   // アコーディオン開閉状態
   const [openCats, setOpenCats] = useState<Record<string, boolean>>(() =>
@@ -142,6 +146,16 @@ const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, on
           );
         })}
       </section>
+
+      {/* 未分類タスク */}
+      {uncategorizedTasks.length > 0 && (
+        <section style={{ marginBottom: 28 }}>
+          <SLabel>未分類</SLabel>
+          {uncategorizedTasks.map((task) => (
+            <DraggableTaskCard key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} onDragStart={handleDragStart} />
+          ))}
+        </section>
+      )}
 
       {/* ③ 今日の予定（カレンダーから） */}
       {events.length > 0 && (
