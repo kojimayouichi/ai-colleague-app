@@ -1,4 +1,4 @@
-import { C, CATEGORY_COLORS } from '../constants';
+import { C, CATEGORY_COLORS, localDateStr } from '../constants';
 import type { Task, CalendarEvent } from '../types';
 
 interface Props {
@@ -31,7 +31,7 @@ const todayLabel = () => {
 
 const HomeScreen = ({ tasks, events, loading }: Props) => {
   const todayTasks = tasks.filter(
-    (t) => t.due && t.due.slice(0, 10) === new Date().toISOString().slice(0, 10),
+    (t) => t.due && t.due.slice(0, 10) === localDateStr(),
   );
 
   return (

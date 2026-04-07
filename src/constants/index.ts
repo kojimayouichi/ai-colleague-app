@@ -28,6 +28,12 @@ export const CATEGORY_COLORS: Record<string, { bg: string; color: string; dot: s
   未分類: { bg: '#2E2E3E', color: '#9898B0', dot: '#5A5A72' },
 };
 
+// ローカル日付文字列（YYYY-MM-DD）を返す。toISOString()はUTC基準なので使わない
+export const localDateStr = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 // スプレッドシート
 export const SPREADSHEET_ID = '1teWdFNrADMFHsZYXlF5stvOVqwWj_S07DWWtn8W2jt8';
 

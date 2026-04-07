@@ -5,13 +5,14 @@ import type { Task } from '../../types';
 
 interface Props {
   task: Task;
+  isToday?: boolean;
   onComplete: (id: string) => void;
   onRemove: (id: string) => void;
   onUpdateDue: (id: string, due: string) => void;
   onDragStart: (task: Task, startX: number, startY: number) => void;
 }
 
-const DraggableTaskCard = ({ task, onComplete, onRemove, onUpdateDue, onDragStart }: Props) => {
+const DraggableTaskCard = ({ task, isToday, onComplete, onRemove, onUpdateDue, onDragStart }: Props) => {
   const gripRef = useRef<HTMLDivElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -64,6 +65,12 @@ const DraggableTaskCard = ({ task, onComplete, onRemove, onUpdateDue, onDragStar
         </div>
         <div style={{ display: 'flex', gap: 4, marginTop: 3, flexWrap: 'wrap', alignItems: 'center' }}>
           <TagBadge label={task.category} />
+
+          {isToday && (
+            <span style={{ fontSize: 10, fontWeight: 700, color: C.yellow, background: `${C.yellow}20`, borderRadius: 4, padding: '1px 5px' }}>
+              今日
+            </span>
+          )}
 
           {/* 期限タップでdate picker */}
           <div style={{ position: 'relative' }}>

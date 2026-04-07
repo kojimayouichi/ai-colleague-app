@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { C, CATEGORIES } from '../constants';
+import { C, CATEGORIES, localDateStr } from '../constants';
 import type { Category } from '../constants';
 import DraggableTaskCard from '../components/tasks/DraggableTaskCard';
 import CategoryZone from '../components/tasks/CategoryZone';
@@ -29,16 +29,14 @@ const SLabel = ({ children }: { children: React.ReactNode }) => (
 );
 
 const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, onUpdateCategory, onUpdateDue }: Props) => {
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = localDateStr();
   const todayTasks = tasks.filter((t) => t.due?.slice(0, 10) === todayStr);
   const tasksByCategory = CATEGORIES.map((cat) => ({
     cat,
-    items: tasks.filter((t) => t.category === cat && t.due?.slice(0, 10) !== todayStr),
+    items: tasks.filter((t) => t.category === cat),
   }));
   // カテゴリなし（未分類）タスク
-  const uncategorizedTasks = tasks.filter(
-    (t) => t.category === '未分類' && t.due?.slice(0, 10) !== todayStr,
-  );
+  const uncategorizedTasks = tasks.filter((t) => t.category === '未分類');
 
   // アコーディオン開閉状態
   const [openCats, setOpenCats] = useState<Record<string, boolean>>(() =>
@@ -140,7 +138,7 @@ const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, on
                 <div style={{ color: C.textDim, fontSize: 12, padding: '4px 12px 8px' }}>タスクなし</div>
               ) : (
                 items.map((task) => (
-                  <DraggableTaskCard key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} onUpdateDue={onUpdateDue} onDragStart={handleDragStart} />
+                  <DraggableTaskCard key={task.id} task={task} isToday={task.due?.slice(0, 10) === todayStr} onComplete={onComplete} onRemove={onRemove} onUpdateDue={onUpdateDue} onDragStart={handleDragStart} />
                 ))
               )}
             </CategoryZone>
@@ -153,7 +151,7 @@ const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, on
         <section style={{ marginBottom: 28 }}>
           <SLabel>未分類</SLabel>
           {uncategorizedTasks.map((task) => (
-            <DraggableTaskCard key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} onUpdateDue={onUpdateDue} onDragStart={handleDragStart} />
+            <DraggableTaskCard key={task.id} task={task} isToday={task.due?.slice(0, 10) === todayStr} onComplete={onComplete} onRemove={onRemove} onUpdateDue={onUpdateDue} onDragStart={handleDragStart} />
           ))}
         </section>
       )}

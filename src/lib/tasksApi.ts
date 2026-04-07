@@ -1,5 +1,6 @@
 import { getAccessToken } from './googleAuth';
 import { parseNotes } from './parseNotes';
+import { localDateStr } from '../constants';
 import type { Task } from '../types';
 
 const BASE = 'https://tasks.googleapis.com/tasks/v1';
@@ -51,8 +52,7 @@ export const fetchTasks = async (taskListId: string): Promise<Task[]> => {
 
 // 今日期限のタスクだけを抽出
 export const filterTodayTasks = (tasks: Task[]): Task[] => {
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  return tasks.filter((t) => t.due && t.due.slice(0, 10) === today && t.status === 'needsAction');
+  return tasks.filter((t) => t.due && t.due.slice(0, 10) === localDateStr() && t.status === 'needsAction');
 };
 
 // タスクを完了にする
