@@ -102,7 +102,7 @@ const App = () => {
   const renderScreen = () => {
     switch (screen) {
       case 'home':
-        return <HomeScreen tasks={tasks} events={events} loading={loading} />;
+        return <HomeScreen tasks={tasks} events={events} memos={memos} loading={loading} />;
       case 'tasks':
         return (
           <TaskScreen tasks={tasks} events={events} loading={loading} onComplete={complete} onRemove={remove} onCreate={create} onUpdateCategory={updateCategory} onUpdateDue={updateDue} />

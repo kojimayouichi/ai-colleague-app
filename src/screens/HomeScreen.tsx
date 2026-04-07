@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { C, CATEGORY_COLORS, localDateStr } from '../constants';
-import type { Task, CalendarEvent } from '../types';
+import type { Task, CalendarEvent, Memo } from '../types';
 
 const GAS_URL =
   'https://script.google.com/macros/s/AKfycbzdhPmtd6XlXXcz2HRKdKP9oq6HDhL_uDfgus2FUaZ0SdpaEj-SGvhvXy2zRqyFO079oA/exec';
@@ -8,6 +8,7 @@ const GAS_URL =
 interface Props {
   tasks: Task[];
   events: CalendarEvent[];
+  memos: Memo[];
   loading: boolean;
 }
 
@@ -33,20 +34,38 @@ const todayLabel = () => {
   return `${d.getMonth() + 1}月${d.getDate()}日（${week[d.getDay()]}）`;
 };
 
-const HomeScreen = ({ tasks, events, loading }: Props) => {
+const HomeScreen = ({ tasks, events, memos, loading }: Props) => {
   const [haikuMsg, setHaikuMsg] = useState<string>('');
-
-  useEffect(() => {
-    const hour = new Date().getHours();
-    fetch(`${GAS_URL}?hour=${hour}`)
-      .then((r) => r.json())
-      .then((d) => setHaikuMsg(d.message ?? ''))
-      .catch(() => {});
-  }, []);
+  const hasFetched = useRef(false);
 
   const todayTasks = tasks.filter(
     (t) => t.due && t.due.slice(0, 10) === localDateStr(),
   );
+
+  useEffect(() => {
+    if (hasFetched.current || loading) return;
+
+    // 候補を集める: 今日の予定・今日のタスク・最新メモ
+    type Candidate = { item: string; type: 'event' | 'task' | 'memo' };
+    const candidates: Candidate[] = [
+      ...events.map((ev) => ({ item: ev.title, type: 'event' as const })),
+      ...todayTasks.map((t) => ({ item: t.title, type: 'task' as const })),
+      ...(memos.length > 0 ? [{ item: memos[0].text.slice(0, 50), type: 'memo' as const }] : []),
+    ];
+    if (candidates.length === 0) return;
+
+    hasFetched.current = true;
+
+    // ランダムに1件選ぶ
+    const picked = candidates[Math.floor(Math.random() * candidates.length)];
+    const hour = new Date().getHours();
+    const url = `${GAS_URL}?hour=${hour}&item=${encodeURIComponent(picked.item)}&type=${picked.type}`;
+
+    fetch(url)
+      .then((r) => r.json())
+      .then((d) => setHaikuMsg(d.message ?? ''))
+      .catch(() => {});
+  }, [events, todayTasks, memos, loading]);
 
   return (
     <div style={{ padding: '20px 16px 80px' }}>
