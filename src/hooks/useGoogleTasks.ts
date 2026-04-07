@@ -67,7 +67,7 @@ export const useGoogleTasks = () => {
       if (!task) return;
 
       // メモ欄のカテゴリタグを書き換える
-      const otherTags = task.tags.filter((tag) => !['仕事','プライベート','子ども','家事'].includes(tag));
+      const otherTags = task.tags.filter((tag) => !['仕事','プライベート','子ども','やりたいこと'].includes(tag));
       const newNotes = [`#${newCategory}`, ...otherTags.map((t) => `#${t}`), task.body]
         .filter(Boolean)
         .join(' ');
