@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { C } from './constants';
-import { redirectToSignIn, exchangeCodeForToken } from './lib/googleAuth';
+import { redirectToSignIn, exchangeCodeForToken, loadStoredToken } from './lib/googleAuth';
 import { useGoogleTasks } from './hooks/useGoogleTasks';
 import { useGoogleCalendar } from './hooks/useGoogleCalendar';
 import BottomNav, { type Screen } from './components/layout/BottomNav';
@@ -16,8 +16,13 @@ const App = () => {
   const { tasks, loading: tasksLoading, load: loadTasks, complete, create, remove, updateCategory } = useGoogleTasks();
   const { events, weekEvents, weekDays, selectedDate, loading: calLoading, load: loadCalendar, loadWeek, setSelectedDate } = useGoogleCalendar();
 
-  // 起動時にURLの認証コードをトークンに交換
+  // 起動時：保存済みトークン確認 → なければURLのcodeを交換
   useEffect(() => {
+    const stored = loadStoredToken();
+    if (stored) {
+      setIsAuthenticated(true);
+      return;
+    }
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('code')) {
       exchangeCodeForToken().then((token) => {
