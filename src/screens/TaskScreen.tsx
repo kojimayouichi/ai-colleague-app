@@ -116,7 +116,30 @@ const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, on
           <div style={{ color: C.textDim, fontSize: 13 }}>今日期限のタスクなし</div>
         )}
         {todayTasks.map((task) => (
-          <DraggableTaskCard key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} onUpdateDue={onUpdateDue} onDragStart={handleDragStart} />
+          <div
+            key={task.id}
+            style={{
+              borderLeft: `3px solid ${C.accent}`,
+              padding: '8px 12px',
+              marginBottom: 6,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <button
+              onClick={() => onComplete(task.id)}
+              style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${C.border}`, background: 'none', cursor: 'pointer', flexShrink: 0 }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: C.text, fontSize: 14, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {task.title}
+              </div>
+              {task.category !== '未分類' && (
+                <div style={{ color: C.textDim, fontSize: 11, marginTop: 2 }}>{task.category}</div>
+              )}
+            </div>
+          </div>
         ))}
       </section>
 

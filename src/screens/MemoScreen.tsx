@@ -18,6 +18,7 @@ const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete, onMemorize }: Pro
   const [editText, setEditText] = useState('');
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [memorizingIndex, setMemorizingIndex] = useState<number | null>(null);
+  const [toast, setToast] = useState(false);
 
   const handleSubmit = async () => {
     if (!text.trim() || submitting) return;
@@ -45,6 +46,8 @@ const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete, onMemorize }: Pro
     setMemorizingIndex(rowIndex);
     try {
       await onMemorize(text);
+      setToast(true);
+      setTimeout(() => setToast(false), 2500);
     } finally {
       setMemorizingIndex(null);
     }
@@ -62,6 +65,18 @@ const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete, onMemorize }: Pro
   return (
     <div style={{ padding: '20px 16px 100px' }}>
       <div style={{ color: C.text, fontSize: 20, fontWeight: 700, marginBottom: 20 }}>メモ</div>
+
+      {/* トースト通知 */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)',
+          background: C.surfaceHigh, border: `1px solid ${C.accent}`, borderRadius: 20,
+          padding: '10px 20px', color: C.text, fontSize: 13, fontWeight: 600,
+          zIndex: 999, whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+        }}>
+          🧠 中期記憶に追加しました
+        </div>
+      )}
 
       {/* 入力エリア */}
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, marginBottom: 20 }}>
