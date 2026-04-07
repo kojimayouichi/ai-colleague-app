@@ -1,5 +1,9 @@
+import { useEffect, useState } from 'react';
 import { C, CATEGORY_COLORS, localDateStr } from '../constants';
 import type { Task, CalendarEvent } from '../types';
+
+const GAS_URL =
+  'https://script.google.com/macros/s/AKfycbzdhPmtd6XlXXcz2HRKdKP9oq6HDhL_uDfgus2FUaZ0SdpaEj-SGvhvXy2zRqyFO079oA/exec';
 
 interface Props {
   tasks: Task[];
@@ -30,6 +34,16 @@ const todayLabel = () => {
 };
 
 const HomeScreen = ({ tasks, events, loading }: Props) => {
+  const [haikuMsg, setHaikuMsg] = useState<string>('');
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    fetch(`${GAS_URL}?hour=${hour}`)
+      .then((r) => r.json())
+      .then((d) => setHaikuMsg(d.message ?? ''))
+      .catch(() => {});
+  }, []);
+
   const todayTasks = tasks.filter(
     (t) => t.due && t.due.slice(0, 10) === localDateStr(),
   );
@@ -40,6 +54,9 @@ const HomeScreen = ({ tasks, events, loading }: Props) => {
       <div style={{ marginBottom: 24 }}>
         <div style={{ color: C.textMid, fontSize: 13, marginBottom: 4 }}>{todayLabel()}</div>
         <div style={{ color: C.text, fontSize: 24, fontWeight: 700 }}>{greeting()}</div>
+        {haikuMsg && (
+          <div style={{ color: C.textMid, fontSize: 14, marginTop: 6 }}>{haikuMsg}</div>
+        )}
       </div>
 
       {loading && (
