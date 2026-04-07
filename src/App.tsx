@@ -13,7 +13,7 @@ const App = () => {
   const [screen, setScreen] = useState<Screen>('home');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const { tasks, loading: tasksLoading, load: loadTasks, complete, create, remove, updateCategory } = useGoogleTasks();
+  const { tasks, loading: tasksLoading, load: loadTasks, complete, create, remove, updateCategory, updateDue } = useGoogleTasks();
   const { events, weekEvents, weekDays, selectedDate, loading: calLoading, load: loadCalendar, loadWeek, setSelectedDate } = useGoogleCalendar();
 
   // 起動時：保存済みトークン確認 → なければURLのcodeを交換
@@ -102,7 +102,7 @@ const App = () => {
         return <HomeScreen tasks={tasks} events={events} loading={loading} />;
       case 'tasks':
         return (
-          <TaskScreen tasks={tasks} events={events} loading={loading} onComplete={complete} onRemove={remove} onCreate={create} onUpdateCategory={updateCategory} />
+          <TaskScreen tasks={tasks} events={events} loading={loading} onComplete={complete} onRemove={remove} onCreate={create} onUpdateCategory={updateCategory} onUpdateDue={updateDue} />
         );
       case 'calendar':
         return <CalendarScreen weekDays={weekDays} weekEvents={weekEvents} selectedDate={selectedDate} tasks={tasks} loading={calLoading} onSelectDate={setSelectedDate} onLoadWeek={loadWeek} />;

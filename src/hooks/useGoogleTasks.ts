@@ -6,6 +6,7 @@ import {
   createTask,
   deleteTask,
   updateTaskNotes,
+  updateTaskDue,
 } from '../lib/tasksApi';
 import { parseNotes } from '../lib/parseNotes';
 import type { Task } from '../types';
@@ -86,5 +87,21 @@ export const useGoogleTasks = () => {
     [taskListId, tasks],
   );
 
-  return { tasks, loading, error, load, complete, create, remove, updateCategory };
+  const updateDue = useCallback(
+    async (taskId: string, due: string) => {
+      if (!taskListId) return;
+      // ローカル即時反映
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === taskId
+            ? { ...t, due: due ? `${due}T00:00:00.000Z` : null }
+            : t,
+        ),
+      );
+      await updateTaskDue(taskListId, taskId, due);
+    },
+    [taskListId],
+  );
+
+  return { tasks, loading, error, load, complete, create, remove, updateCategory, updateDue };
 };

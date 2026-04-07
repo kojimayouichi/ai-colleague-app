@@ -13,6 +13,7 @@ interface Props {
   onRemove: (id: string) => void;
   onCreate: (title: string, due?: string, category?: Category) => void;
   onUpdateCategory: (taskId: string, cat: Category) => void;
+  onUpdateDue: (taskId: string, due: string) => void;
 }
 
 const fmtTime = (iso: string) => {
@@ -27,7 +28,7 @@ const SLabel = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, onUpdateCategory }: Props) => {
+const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, onUpdateCategory, onUpdateDue }: Props) => {
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayTasks = tasks.filter((t) => t.due?.slice(0, 10) === todayStr);
   const tasksByCategory = CATEGORIES.map((cat) => ({
@@ -117,7 +118,7 @@ const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, on
           <div style={{ color: C.textDim, fontSize: 13 }}>今日期限のタスクなし</div>
         )}
         {todayTasks.map((task) => (
-          <DraggableTaskCard key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} onDragStart={handleDragStart} />
+          <DraggableTaskCard key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} onUpdateDue={onUpdateDue} onDragStart={handleDragStart} />
         ))}
       </section>
 
@@ -139,7 +140,7 @@ const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, on
                 <div style={{ color: C.textDim, fontSize: 12, padding: '4px 12px 8px' }}>タスクなし</div>
               ) : (
                 items.map((task) => (
-                  <DraggableTaskCard key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} onDragStart={handleDragStart} />
+                  <DraggableTaskCard key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} onUpdateDue={onUpdateDue} onDragStart={handleDragStart} />
                 ))
               )}
             </CategoryZone>
@@ -152,7 +153,7 @@ const TaskScreen = ({ tasks, events, loading, onComplete, onRemove, onCreate, on
         <section style={{ marginBottom: 28 }}>
           <SLabel>未分類</SLabel>
           {uncategorizedTasks.map((task) => (
-            <DraggableTaskCard key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} onDragStart={handleDragStart} />
+            <DraggableTaskCard key={task.id} task={task} onComplete={onComplete} onRemove={onRemove} onUpdateDue={onUpdateDue} onDragStart={handleDragStart} />
           ))}
         </section>
       )}

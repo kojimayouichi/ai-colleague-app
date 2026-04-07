@@ -104,6 +104,19 @@ export const deleteTask = async (taskListId: string, taskId: string): Promise<vo
   });
 };
 
+// タスクの期限を更新する（YYYY-MM-DD、空文字でクリア）
+export const updateTaskDue = async (
+  taskListId: string,
+  taskId: string,
+  due: string, // YYYY-MM-DD or ''
+): Promise<void> => {
+  await fetch(`${BASE}/lists/${taskListId}/tasks/${taskId}`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ due: due ? `${due}T00:00:00.000Z` : null }),
+  });
+};
+
 // タスクのメモ欄（notes）を更新する（カテゴリタグの書き換えに使用）
 export const updateTaskNotes = async (
   taskListId: string,
