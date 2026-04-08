@@ -12,7 +12,7 @@ const ANTHROPIC_API_KEY_PROP = 'ANTHROPIC_API_KEY';
       const apiKey = PropertiesService.getScriptProperties()
                        .getProperty(ANTHROPIC_API_KEY_PROP);
 
-      const timeContext = hour < 12 ? '朝' : hour < 18 ? '昼' : '夜';
+      const timeContext = hour < 5 ? '夜' : hour < 12 ? '朝' : hour < 18 ? '昼' : '夜';
       let prompt = '';
       if (item && type === 'event') {
         prompt =

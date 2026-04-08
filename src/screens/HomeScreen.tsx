@@ -22,6 +22,7 @@ const fmtTime = (iso: string) => {
 // 挨拶文
 const greeting = () => {
   const h = new Date().getHours();
+  if (h < 5) return 'こんばんは！';
   if (h < 12) return 'おはよう！';
   if (h < 18) return 'こんにちは！';
   return 'こんばんは！';
