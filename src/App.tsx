@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { C } from './constants';
+import type { Category } from './constants';
 import { redirectToSignIn, exchangeCodeForToken, loadStoredToken } from './lib/googleAuth';
 import { useGoogleTasks } from './hooks/useGoogleTasks';
 import { useGoogleCalendar } from './hooks/useGoogleCalendar';
@@ -43,6 +44,12 @@ const App = () => {
   }, [isAuthenticated]);
 
   const loading = tasksLoading || calLoading || memosLoading;
+
+  // タスク追加と同時に中期記憶にも記録する
+  const createWithMemory = async (title: string, due?: string, category?: Category) => {
+    await create(title, due, category);
+    await memorize(`${title}というタスクを追加`);
+  };
 
   // ─── ログイン画面 ───────────────────────────────────────
   if (!isAuthenticated) {
@@ -105,7 +112,7 @@ const App = () => {
         return <HomeScreen tasks={tasks} events={events} memos={memos} loading={loading} />;
       case 'tasks':
         return (
-          <TaskScreen tasks={tasks} events={events} loading={loading} onComplete={complete} onRemove={remove} onCreate={create} onUpdateCategory={updateCategory} onUpdateDue={updateDue} />
+          <TaskScreen tasks={tasks} events={events} loading={loading} onComplete={complete} onRemove={remove} onCreate={createWithMemory} onUpdateCategory={updateCategory} onUpdateDue={updateDue} />
         );
       case 'calendar':
         return <CalendarScreen weekDays={weekDays} weekEvents={weekEvents} selectedDate={selectedDate} tasks={tasks} loading={calLoading} onSelectDate={setSelectedDate} onLoadWeek={loadWeek} />;

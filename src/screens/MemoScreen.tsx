@@ -18,6 +18,7 @@ const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete, onMemorize }: Pro
   const [editText, setEditText] = useState('');
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [memorizingIndex, setMemorizingIndex] = useState<number | null>(null);
+  const [memorizedRows, setMemorizedRows] = useState<Set<number>>(new Set());
   const [toast, setToast] = useState(false);
 
   const handleSubmit = async () => {
@@ -46,6 +47,7 @@ const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete, onMemorize }: Pro
     setMemorizingIndex(rowIndex);
     try {
       await onMemorize(text);
+      setMemorizedRows((prev) => { const next = new Set(prev); next.add(rowIndex); return next; });
       setToast(true);
       setTimeout(() => setToast(false), 2500);
     } finally {
@@ -74,7 +76,7 @@ const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete, onMemorize }: Pro
           padding: '10px 20px', color: C.text, fontSize: 13, fontWeight: 600,
           zIndex: 999, whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
         }}>
-          🧠 中期記憶に追加しました
+          🤖 中期記憶に追加しました
         </div>
       )}
 
@@ -141,11 +143,11 @@ const MemoScreen = ({ memos, loading, onAdd, onEdit, onDelete, onMemorize }: Pro
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   onClick={() => handleMemorize(memo.rowIndex, memo.text)}
-                  disabled={memorizingIndex === memo.rowIndex}
-                  title="中期記憶に保存"
-                  style={{ background: 'none', border: 'none', color: C.textMid, cursor: 'pointer', fontSize: 14, padding: '2px 4px', opacity: memorizingIndex === memo.rowIndex ? 0.4 : 1 }}
+                  disabled={memorizingIndex === memo.rowIndex || memorizedRows.has(memo.rowIndex)}
+                  title={memorizedRows.has(memo.rowIndex) ? '記憶済み' : '中期記憶に保存'}
+                  style={{ background: 'none', border: 'none', color: C.textMid, cursor: memorizedRows.has(memo.rowIndex) ? 'default' : 'pointer', fontSize: 14, padding: '2px 4px', opacity: (memorizingIndex === memo.rowIndex || memorizedRows.has(memo.rowIndex)) ? 0.2 : 1 }}
                 >
-                  🧠
+                  🤖
                 </button>
                 <button
                   onClick={() => handleEditStart(memo)}
