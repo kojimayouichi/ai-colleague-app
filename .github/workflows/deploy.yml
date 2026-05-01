@@ -26,6 +26,7 @@ jobs:
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
+          VITE_WORKER_URL: https://morning-union-5b5b.kojima41.workers.dev
         run: npm run build
 
       - name: GitHub Pages へデプロイ

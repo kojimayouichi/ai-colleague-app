@@ -11,13 +11,25 @@ import TaskScreen from './screens/TaskScreen';
 import CalendarScreen from './screens/CalendarScreen';
 import MemoScreen from './screens/MemoScreen';
 
+const WORKER_URL = import.meta.env.VITE_WORKER_URL as string;
+
 const App = () => {
   const [screen, setScreen] = useState<Screen>('home');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [gasManagerUrl, setGasManagerUrl] = useState('');
 
   const { tasks, loading: tasksLoading, load: loadTasks, complete, create, remove, updateCategory, updateDue } = useGoogleTasks();
   const { events, weekEvents, weekDays, selectedDate, loading: calLoading, load: loadCalendar, loadWeek, setSelectedDate } = useGoogleCalendar();
   const { memos, loading: memosLoading, load: loadMemos, addMemo, editMemo, removeMemo, memorize } = useSheets();
+
+  // 起動時：WorkerからGAS Manager URLを取得
+  useEffect(() => {
+    if (!WORKER_URL) return;
+    fetch(`${WORKER_URL}?type=config`)
+      .then((r) => r.json())
+      .then((d) => { if (d.gasManagerUrl) setGasManagerUrl(d.gasManagerUrl); })
+      .catch(() => {});
+  }, []);
 
   // 起動時：保存済みトークン確認 → なければURLのcodeを交換
   useEffect(() => {
@@ -109,7 +121,7 @@ const App = () => {
   const renderScreen = () => {
     switch (screen) {
       case 'home':
-        return <HomeScreen tasks={tasks} events={events} memos={memos} loading={loading} />;
+        return <HomeScreen tasks={tasks} events={events} memos={memos} loading={loading} gasManagerUrl={gasManagerUrl} />;
       case 'tasks':
         return (
           <TaskScreen tasks={tasks} events={events} loading={loading} onComplete={complete} onRemove={remove} onCreate={createWithMemory} onUpdateCategory={updateCategory} onUpdateDue={updateDue} />
