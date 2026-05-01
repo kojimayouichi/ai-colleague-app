@@ -1,148 +1,190 @@
 import { useEffect } from 'react';
 import { C } from '../constants';
-import type { CalendarEvent, Task } from '../types';
+import type { CalendarEvent } from '../types';
 
 interface Props {
-  weekDays: Date[];
-  weekEvents: CalendarEvent[];
-  selectedDate: Date;
-  tasks: Task[];
+  monthEvents: CalendarEvent[];
+  currentMonth: { year: number; month: number };
   loading: boolean;
-  onSelectDate: (date: Date) => void;
-  onLoadWeek: (date: Date) => void;
+  onLoadMonth: (year: number, month: number) => void;
 }
 
-const DAY_LABELS = ['月', '火', '水', '木', '金', '土', '日'];
-const HOURS = Array.from({ length: 14 }, (_, i) => i + 8); // 8〜21時
+const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
 const isSameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
 
-const fmtTime = (iso: string) => {
+const isAllDay = (iso: string) => !iso.includes('T');
+
+const fmtTime = (iso: string): string | null => {
+  if (isAllDay(iso)) return null;
   const d = new Date(iso);
-  if (isNaN(d.getTime())) return '';
+  if (isNaN(d.getTime())) return null;
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 
-const CalendarScreen = ({ weekDays, weekEvents, selectedDate, tasks, loading, onSelectDate, onLoadWeek }: Props) => {
-  // 初回ロード
+const getLocalDate = (iso: string): Date => {
+  if (isAllDay(iso)) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date(iso);
+};
+
+const CalendarScreen = ({ monthEvents, currentMonth, loading, onLoadMonth }: Props) => {
+  const { year, month } = currentMonth;
+
   useEffect(() => {
-    onLoadWeek(selectedDate);
+    onLoadMonth(year, month);
   }, []);
 
-  // 選択日のイベント
-  const dayEvents = weekEvents.filter((ev) => isSameDay(new Date(ev.start), selectedDate));
+  const today = new Date();
 
-  // タスク期限ドット（週ビュー用）
-  const taskDotsByDay = weekDays.map((day) =>
-    tasks.filter((t) => t.due && isSameDay(new Date(t.due), day)),
-  );
+  const prevMonth = () => {
+    const d = new Date(year, month - 1, 1);
+    onLoadMonth(d.getFullYear(), d.getMonth());
+  };
+
+  const nextMonth = () => {
+    const d = new Date(year, month + 1, 1);
+    onLoadMonth(d.getFullYear(), d.getMonth());
+  };
+
+  // イベントを日付キー（YYYY-MM-DD）でグループ化
+  const eventsByDay = new Map<string, CalendarEvent[]>();
+  for (const ev of monthEvents) {
+    const d = getLocalDate(ev.start);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (!eventsByDay.has(key)) eventsByDay.set(key, []);
+    eventsByDay.get(key)!.push(ev);
+  }
+  const sortedDays = Array.from(eventsByDay.keys()).sort();
 
   return (
     <div style={{ paddingBottom: 80 }}>
-      {/* 週ビュー */}
-      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '16px 8px 12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, paddingInline: 4 }}>
-          <button
-            onClick={() => {
-              const prev = new Date(weekDays[0]);
-              prev.setDate(prev.getDate() - 7);
-              onLoadWeek(prev);
-            }}
-            style={{ background: 'none', border: 'none', color: C.textMid, cursor: 'pointer', fontSize: 18 }}
-          >‹</button>
-          <span style={{ color: C.textMid, fontSize: 12 }}>
-            {weekDays[0]?.getMonth() + 1}月
-          </span>
-          <button
-            onClick={() => {
-              const next = new Date(weekDays[0]);
-              next.setDate(next.getDate() + 7);
-              onLoadWeek(next);
-            }}
-            style={{ background: 'none', border: 'none', color: C.textMid, cursor: 'pointer', fontSize: 18 }}
-          >›</button>
-        </div>
-
-        <div style={{ display: 'flex', gap: 4 }}>
-          {weekDays.map((day, i) => {
-            const isSelected = isSameDay(day, selectedDate);
-            const isToday = isSameDay(day, new Date());
-            const dots = taskDotsByDay[i];
-            return (
-              <button
-                key={i}
-                onClick={() => onSelectDate(day)}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 4,
-                  padding: '8px 4px',
-                  borderRadius: 10,
-                  background: isSelected ? C.accent : isToday ? C.accentSoft : 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <span style={{ color: isSelected ? C.text : C.textMid, fontSize: 10 }}>
-                  {DAY_LABELS[i]}
-                </span>
-                <span style={{ color: isSelected ? C.text : isToday ? C.accent : C.text, fontSize: 16, fontWeight: isToday ? 700 : 400 }}>
-                  {day.getDate()}
-                </span>
-                <div style={{ display: 'flex', gap: 2 }}>
-                  {dots.slice(0, 3).map((t) => (
-                    <span key={t.id} style={{ width: 4, height: 4, borderRadius: '50%', background: isSelected ? C.text : C.accent }} />
-                  ))}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+      {/* 月ナビゲーション */}
+      <div
+        style={{
+          background: C.surface,
+          borderBottom: `1px solid ${C.border}`,
+          padding: '16px 16px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <button
+          onClick={prevMonth}
+          style={{ background: 'none', border: 'none', color: C.textMid, cursor: 'pointer', fontSize: 24, padding: '4px 10px', lineHeight: 1 }}
+        >
+          ‹
+        </button>
+        <span style={{ color: C.text, fontSize: 16, fontWeight: 700 }}>
+          {year}年{month + 1}月
+        </span>
+        <button
+          onClick={nextMonth}
+          style={{ background: 'none', border: 'none', color: C.textMid, cursor: 'pointer', fontSize: 24, padding: '4px 10px', lineHeight: 1 }}
+        >
+          ›
+        </button>
       </div>
 
-      {/* タイムライン */}
-      <div style={{ padding: '8px 0' }}>
-        {loading && <div style={{ color: C.textMid, textAlign: 'center', padding: 24 }}>読み込み中...</div>}
-
-        {dayEvents.length === 0 && !loading && (
-          <div style={{ color: C.textDim, textAlign: 'center', padding: 24, fontSize: 13 }}>この日の予定なし</div>
+      {/* イベントリスト */}
+      <div style={{ padding: '16px 16px 0' }}>
+        {loading && (
+          <div style={{ color: C.textMid, textAlign: 'center', padding: 48, fontSize: 13 }}>読み込み中...</div>
         )}
 
-        {HOURS.map((hour) => {
-          const hourEvents = dayEvents.filter((ev) => {
-            const h = new Date(ev.start).getHours();
-            return h === hour;
-          });
+        {!loading && sortedDays.length === 0 && (
+          <div style={{ color: C.textDim, textAlign: 'center', padding: 48, fontSize: 13 }}>
+            この月の予定はなし
+          </div>
+        )}
+
+        {sortedDays.map((key) => {
+          const [y, m, d] = key.split('-').map(Number);
+          const date = new Date(y, m - 1, d);
+          const isToday = isSameDay(date, today);
+          const isSun = date.getDay() === 0;
+          const isSat = date.getDay() === 6;
+          const dayLabel = DAY_LABELS[date.getDay()];
+          const dayColor = isSun ? C.red : isSat ? '#7CA8F7' : C.text;
+          const dayLabelColor = isSun ? C.red : isSat ? '#7CA8F7' : C.textMid;
+          const events = eventsByDay.get(key)!;
+
           return (
-            <div key={hour} style={{ display: 'flex', minHeight: 56, borderBottom: `1px solid ${C.border}20` }}>
-              {/* 時刻ラベル */}
-              <div style={{ width: 44, paddingTop: 8, paddingLeft: 12, color: C.textDim, fontSize: 11, flexShrink: 0 }}>
-                {String(hour).padStart(2, '0')}:00
-              </div>
-              {/* イベント */}
-              <div style={{ flex: 1, padding: '6px 12px 6px 0', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {hourEvents.map((ev) => (
-                  <div
-                    key={ev.id}
+            <div key={key} style={{ marginBottom: 20 }}>
+              {/* 日付ヘッダー */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: isToday ? C.accent : 'transparent',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <span
                     style={{
-                      background: C.accentSoft,
-                      border: `1px solid ${C.accent}40`,
-                      borderLeft: `3px solid ${C.accent}`,
-                      borderRadius: 6,
-                      padding: '4px 8px',
+                      color: isToday ? C.text : dayColor,
+                      fontSize: 17,
+                      fontWeight: isToday ? 700 : 500,
+                      lineHeight: 1.1,
                     }}
                   >
-                    <div style={{ color: C.textMid, fontSize: 10 }}>
-                      {fmtTime(ev.start)} - {fmtTime(ev.end)}
+                    {d}
+                  </span>
+                  <span
+                    style={{
+                      color: isToday ? `${C.text}CC` : dayLabelColor,
+                      fontSize: 9,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {dayLabel}
+                  </span>
+                </div>
+              </div>
+
+              {/* イベントカード */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                  paddingLeft: 16,
+                  borderLeft: `2px solid ${isToday ? C.accent : C.border}`,
+                  marginLeft: 20,
+                }}
+              >
+                {events.map((ev) => {
+                  const startTime = fmtTime(ev.start);
+                  const endTime = fmtTime(ev.end);
+                  return (
+                    <div
+                      key={ev.id}
+                      style={{
+                        background: C.surface,
+                        borderRadius: 8,
+                        padding: '8px 12px',
+                        borderLeft: `3px solid ${C.accent}`,
+                      }}
+                    >
+                      <div style={{ color: C.textMid, fontSize: 11, marginBottom: 2 }}>
+                        {startTime ? `${startTime}${endTime ? ` - ${endTime}` : ''}` : '終日'}
+                      </div>
+                      <div style={{ color: C.text, fontSize: 13, fontWeight: 500 }}>{ev.title}</div>
                     </div>
-                    <div style={{ color: C.text, fontSize: 13, fontWeight: 500 }}>{ev.title}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );

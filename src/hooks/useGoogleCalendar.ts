@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import { fetchTodayEvents, fetchWeekEvents, getWeekRange } from '../lib/calendarApi';
+import { fetchTodayEvents, fetchMonthEvents } from '../lib/calendarApi';
 import type { CalendarEvent } from '../types';
 
 export const useGoogleCalendar = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [weekEvents, setWeekEvents] = useState<CalendarEvent[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [monthEvents, setMonthEvents] = useState<CalendarEvent[]>([]);
+  const now = new Date();
+  const [currentMonth, setCurrentMonth] = useState({ year: now.getFullYear(), month: now.getMonth() });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,13 +23,13 @@ export const useGoogleCalendar = () => {
     }
   }, []);
 
-  const loadWeek = useCallback(async (date: Date) => {
+  const loadMonth = useCallback(async (year: number, month: number) => {
     setLoading(true);
     setError(null);
     try {
-      const fetched = await fetchWeekEvents(date);
-      setWeekEvents(fetched);
-      setSelectedDate(date);
+      const fetched = await fetchMonthEvents(year, month);
+      setMonthEvents(fetched);
+      setCurrentMonth({ year, month });
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -36,7 +37,5 @@ export const useGoogleCalendar = () => {
     }
   }, []);
 
-  const weekDays = getWeekRange(selectedDate).days;
-
-  return { events, weekEvents, weekDays, selectedDate, loading, error, load, loadWeek, setSelectedDate };
+  return { events, monthEvents, currentMonth, loading, error, load, loadMonth };
 };

@@ -19,7 +19,7 @@ const App = () => {
   const [gasManagerUrl, setGasManagerUrl] = useState('');
 
   const { tasks, loading: tasksLoading, load: loadTasks, complete, create, remove, updateCategory, updateDue } = useGoogleTasks();
-  const { events, weekEvents, weekDays, selectedDate, loading: calLoading, load: loadCalendar, loadWeek, setSelectedDate } = useGoogleCalendar();
+  const { events, monthEvents, currentMonth, loading: calLoading, load: loadCalendar, loadMonth } = useGoogleCalendar();
   const { memos, loading: memosLoading, load: loadMemos, addMemo, editMemo, removeMemo, memorize } = useSheets();
 
   // 起動時：WorkerからGAS Manager URLを取得
@@ -127,7 +127,7 @@ const App = () => {
           <TaskScreen tasks={tasks} events={events} loading={loading} onComplete={complete} onRemove={remove} onCreate={createWithMemory} onUpdateCategory={updateCategory} onUpdateDue={updateDue} />
         );
       case 'calendar':
-        return <CalendarScreen weekDays={weekDays} weekEvents={weekEvents} selectedDate={selectedDate} tasks={tasks} loading={calLoading} onSelectDate={setSelectedDate} onLoadWeek={loadWeek} />;
+        return <CalendarScreen monthEvents={monthEvents} currentMonth={currentMonth} loading={calLoading} onLoadMonth={loadMonth} />;
       case 'memo':
         return <MemoScreen memos={memos} loading={memosLoading} onAdd={addMemo} onEdit={editMemo} onDelete={removeMemo} onMemorize={memorize} />;
     }

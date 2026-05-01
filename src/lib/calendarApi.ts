@@ -59,6 +59,45 @@ export const fetchWeekEvents = async (date: Date): Promise<CalendarEvent[]> => {
   });
 };
 
+// 指定月の日付範囲を返す（month は 0-indexed）
+export const getMonthRange = (year: number, month: number): { start: Date; end: Date } => {
+  const start = new Date(year, month, 1, 0, 0, 0, 0);
+  const end = new Date(year, month + 1, 1, 0, 0, 0, 0);
+  return { start, end };
+};
+
+// 指定月の予定を取得（month は 0-indexed）
+export const fetchMonthEvents = async (year: number, month: number): Promise<CalendarEvent[]> => {
+  const { start, end } = getMonthRange(year, month);
+
+  const params = new URLSearchParams({
+    timeMin: start.toISOString(),
+    timeMax: end.toISOString(),
+    singleEvents: 'true',
+    orderBy: 'startTime',
+    maxResults: '200',
+  });
+
+  const res = await fetch(`${BASE}/calendars/primary/events?${params}`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error('カレンダーの取得に失敗しました');
+
+  const data = await res.json();
+  const items = (data.items ?? []) as Record<string, unknown>[];
+
+  return items.map((item) => {
+    const startObj = item.start as Record<string, string>;
+    const endObj = item.end as Record<string, string>;
+    return {
+      id: item.id as string,
+      title: item.summary as string,
+      start: startObj.dateTime ?? startObj.date,
+      end: endObj.dateTime ?? endObj.date,
+    };
+  });
+};
+
 // 今日の予定を取得（primaryカレンダー・読み取り専用）
 export const fetchTodayEvents = async (): Promise<CalendarEvent[]> => {
   const now = new Date();
