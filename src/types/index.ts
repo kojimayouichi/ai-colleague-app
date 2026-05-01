@@ -21,6 +21,7 @@ export interface CalendarEvent {
   start: string;  // ISO8601
   end: string;    // ISO8601
   color?: string;
+  calendarName?: string;
 }
 
 // メモ

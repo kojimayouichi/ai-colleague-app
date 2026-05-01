@@ -7,56 +7,27 @@ const authHeaders = () => ({
   Authorization: `Bearer ${getAccessToken()}`,
 });
 
-// 指定日を含む週（月〜日）の日付範囲を返す
-export const getWeekRange = (date: Date): { start: Date; end: Date; days: Date[] } => {
-  const d = new Date(date);
-  const dow = d.getDay(); // 0=日
-  const monday = new Date(d);
-  monday.setDate(d.getDate() - ((dow + 6) % 7));
-  monday.setHours(0, 0, 0, 0);
+export interface CalendarInfo {
+  id: string;
+  name: string;
+  color: string;
+}
 
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const day = new Date(monday);
-    day.setDate(monday.getDate() + i);
-    return day;
-  });
-
-  const end = new Date(monday);
-  end.setDate(monday.getDate() + 7);
-
-  return { start: monday, end, days };
-};
-
-// 指定した週の予定を取得
-export const fetchWeekEvents = async (date: Date): Promise<CalendarEvent[]> => {
-  const { start, end } = getWeekRange(date);
-
-  const params = new URLSearchParams({
-    timeMin: start.toISOString(),
-    timeMax: end.toISOString(),
-    singleEvents: 'true',
-    orderBy: 'startTime',
-    maxResults: '50',
-  });
-
-  const res = await fetch(`${BASE}/calendars/primary/events?${params}`, {
+// ユーザーが購読している全カレンダーの一覧を取得
+export const fetchCalendarList = async (): Promise<CalendarInfo[]> => {
+  const res = await fetch(`${BASE}/users/me/calendarList?minAccessRole=reader`, {
     headers: authHeaders(),
   });
-  if (!res.ok) throw new Error('カレンダーの取得に失敗しました');
+  if (!res.ok) throw new Error('カレンダー一覧の取得に失敗しました');
 
   const data = await res.json();
   const items = (data.items ?? []) as Record<string, unknown>[];
 
-  return items.map((item) => {
-    const startObj = item.start as Record<string, string>;
-    const endObj = item.end as Record<string, string>;
-    return {
-      id: item.id as string,
-      title: item.summary as string,
-      start: startObj.dateTime ?? startObj.date,
-      end: endObj.dateTime ?? endObj.date,
-    };
-  });
+  return items.map((item) => ({
+    id: item.id as string,
+    name: item.summary as string,
+    color: (item.backgroundColor as string) ?? '#7C6AF7',
+  }));
 };
 
 // 指定月の日付範囲を返す（month は 0-indexed）
@@ -66,8 +37,12 @@ export const getMonthRange = (year: number, month: number): { start: Date; end: 
   return { start, end };
 };
 
-// 指定月の予定を取得（month は 0-indexed）
-export const fetchMonthEvents = async (year: number, month: number): Promise<CalendarEvent[]> => {
+// 指定カレンダーの月イベントを取得
+const fetchMonthEventsFromCalendar = async (
+  year: number,
+  month: number,
+  calendar: CalendarInfo,
+): Promise<CalendarEvent[]> => {
   const { start, end } = getMonthRange(year, month);
 
   const params = new URLSearchParams({
@@ -78,10 +53,11 @@ export const fetchMonthEvents = async (year: number, month: number): Promise<Cal
     maxResults: '200',
   });
 
-  const res = await fetch(`${BASE}/calendars/primary/events?${params}`, {
-    headers: authHeaders(),
-  });
-  if (!res.ok) throw new Error('カレンダーの取得に失敗しました');
+  const res = await fetch(
+    `${BASE}/calendars/${encodeURIComponent(calendar.id)}/events?${params}`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) throw new Error(`${calendar.name} の取得に失敗しました`);
 
   const data = await res.json();
   const items = (data.items ?? []) as Record<string, unknown>[];
@@ -90,12 +66,26 @@ export const fetchMonthEvents = async (year: number, month: number): Promise<Cal
     const startObj = item.start as Record<string, string>;
     const endObj = item.end as Record<string, string>;
     return {
-      id: item.id as string,
+      id: `${calendar.id}_${item.id as string}`,
       title: item.summary as string,
       start: startObj.dateTime ?? startObj.date,
       end: endObj.dateTime ?? endObj.date,
+      color: calendar.color,
+      calendarName: calendar.name,
     };
   });
+};
+
+// 全カレンダー（共有含む）の月イベントを並行取得してマージ
+export const fetchAllMonthEvents = async (year: number, month: number): Promise<CalendarEvent[]> => {
+  const calendars = await fetchCalendarList();
+  const results = await Promise.allSettled(
+    calendars.map((cal) => fetchMonthEventsFromCalendar(year, month, cal)),
+  );
+  return results
+    .filter((r): r is PromiseFulfilledResult<CalendarEvent[]> => r.status === 'fulfilled')
+    .flatMap((r) => r.value)
+    .sort((a, b) => a.start.localeCompare(b.start));
 };
 
 // 今日の予定を取得（primaryカレンダー・読み取り専用）

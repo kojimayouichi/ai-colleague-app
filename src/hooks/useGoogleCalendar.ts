@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { fetchTodayEvents, fetchMonthEvents } from '../lib/calendarApi';
+import { fetchTodayEvents, fetchAllMonthEvents } from '../lib/calendarApi';
 import type { CalendarEvent } from '../types';
 
 export const useGoogleCalendar = () => {
@@ -27,7 +27,7 @@ export const useGoogleCalendar = () => {
     setLoading(true);
     setError(null);
     try {
-      const fetched = await fetchMonthEvents(year, month);
+      const fetched = await fetchAllMonthEvents(year, month);
       setMonthEvents(fetched);
       setCurrentMonth({ year, month });
     } catch (e) {

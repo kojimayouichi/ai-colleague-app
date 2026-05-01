@@ -175,13 +175,16 @@ const CalendarScreen = ({ monthEvents, currentMonth, loading, onLoadMonth }: Pro
                         background: C.surface,
                         borderRadius: 8,
                         padding: '8px 12px',
-                        borderLeft: `3px solid ${C.accent}`,
+                        borderLeft: `3px solid ${ev.color ?? C.accent}`,
                       }}
                     >
                       <div style={{ color: C.textMid, fontSize: 11, marginBottom: 2 }}>
                         {startTime ? `${startTime}${endTime ? ` - ${endTime}` : ''}` : '終日'}
                       </div>
                       <div style={{ color: C.text, fontSize: 13, fontWeight: 500 }}>{ev.title}</div>
+                      {ev.calendarName && (
+                        <div style={{ color: C.textDim, fontSize: 10, marginTop: 3 }}>{ev.calendarName}</div>
+                      )}
                     </div>
                   );
                 })}
