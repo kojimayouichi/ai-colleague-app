@@ -121,7 +121,7 @@ const App = () => {
   const renderScreen = () => {
     switch (screen) {
       case 'home':
-        return <HomeScreen tasks={tasks} events={events} memos={memos} loading={loading} gasManagerUrl={gasManagerUrl} />;
+        return <HomeScreen tasks={tasks} events={events} memos={memos} loading={loading} />;
       case 'tasks':
         return (
           <TaskScreen tasks={tasks} events={events} loading={loading} onComplete={complete} onRemove={remove} onCreate={createWithMemory} onUpdateCategory={updateCategory} onUpdateDue={updateDue} />
@@ -143,7 +143,7 @@ const App = () => {
       }}
     >
       {renderScreen()}
-      <BottomNav active={screen} onChange={setScreen} />
+      <BottomNav active={screen} onChange={setScreen} gasManagerUrl={gasManagerUrl} />
     </div>
   );
 };

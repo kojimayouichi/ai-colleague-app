@@ -10,7 +10,6 @@ interface Props {
   events: CalendarEvent[];
   memos: Memo[];
   loading: boolean;
-  gasManagerUrl: string;
 }
 
 // 時刻文字列を HH:MM 形式に
@@ -36,7 +35,7 @@ const todayLabel = () => {
   return `${d.getMonth() + 1}月${d.getDate()}日（${week[d.getDay()]}）`;
 };
 
-const HomeScreen = ({ tasks, events, memos, loading, gasManagerUrl }: Props) => {
+const HomeScreen = ({ tasks, events, memos, loading }: Props) => {
   const [haikuMsg, setHaikuMsg] = useState<string>('');
   const hasFetched = useRef(false);
 
@@ -189,26 +188,6 @@ const HomeScreen = ({ tasks, events, memos, loading, gasManagerUrl }: Props) => 
         </div>
       )}
 
-      {/* いいことログ */}
-      {gasManagerUrl && <a
-        href={`${gasManagerUrl}?type=gallery`}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: C.surface,
-          border: `1px solid ${C.border}`,
-          borderRadius: 10,
-          padding: '12px 14px',
-          textDecoration: 'none',
-          color: C.text,
-        }}
-      >
-        <span style={{ fontSize: 14, fontWeight: 500 }}>✨ いいことログ</span>
-        <span style={{ color: C.textMid, fontSize: 12 }}>→</span>
-      </a>}
     </div>
   );
 };

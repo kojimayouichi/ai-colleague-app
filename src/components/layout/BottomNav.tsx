@@ -9,12 +9,26 @@ const TABS: { id: Screen; label: string; icon: string }[] = [
   { id: 'memo', label: 'メモ', icon: '≡' },
 ];
 
+const tabStyle = {
+  flex: 1,
+  display: 'flex',
+  flexDirection: 'column' as const,
+  alignItems: 'center' as const,
+  gap: 3,
+  padding: '8px 0',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  textDecoration: 'none',
+};
+
 interface Props {
   active: Screen;
   onChange: (screen: Screen) => void;
+  gasManagerUrl: string;
 }
 
-const BottomNav = ({ active, onChange }: Props) => (
+const BottomNav = ({ active, onChange, gasManagerUrl }: Props) => (
   <nav
     style={{
       position: 'fixed',
@@ -36,24 +50,24 @@ const BottomNav = ({ active, onChange }: Props) => (
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 3,
-            padding: '8px 0',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: isActive ? C.accent : C.textDim,
-          }}
+          style={{ ...tabStyle, color: isActive ? C.accent : C.textDim }}
         >
           <span style={{ fontSize: 20 }}>{tab.icon}</span>
           <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 400 }}>{tab.label}</span>
         </button>
       );
     })}
+    {gasManagerUrl && (
+      <a
+        href={`${gasManagerUrl}?type=gallery`}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ ...tabStyle, color: C.textDim }}
+      >
+        <span style={{ fontSize: 20 }}>✨</span>
+        <span style={{ fontSize: 10 }}>いいこと</span>
+      </a>
+    )}
   </nav>
 );
 
